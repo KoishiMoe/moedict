@@ -32,37 +32,23 @@ jobs:
                     echo $latest > last_update
                     echo "latest=$latest" >> $GITHUB_ENV
                 fi
-
-            - name: Setup LibIME
-              if: ${{ env.NEW_RELEASE == 'true' }}
-              run: |
-                sudo apt update
-                sudo apt install -y libime-bin
-            
-            - name: Setup imewlconverter
-              if: ${{ env.NEW_RELEASE == 'true' }}
-              run: |
-                wget https://github.com/studyzy/imewlconverter/releases/download/v3.2.0/imewlconverter_Linux.tar.gz
-                tar -xvf imewlconverter_Linux.tar.gz
             
             - name: Get dict
               if: ${{ env.NEW_RELEASE == 'true' }}
               run: |
-                wget https://github.com/outloudvi/mw2fcitx/releases/latest/download/moegirl.dict
+                wget https://github.com/outloudvi/mw2fcitx/releases/latest/download/moegirl.dict.yaml
 
             - name: Convert
               if: ${{ env.NEW_RELEASE == 'true' }}
               run: |
-                libime_pinyindict -d moegirl.dict moegirl.txt
-                chmod +x publish/ImeWlConverterCmd
-                ./publish/ImeWlConverterCmd -i:libimetxt ./moegirl.txt -o:gboard ./publish/
+                python ./convert.py ./moegirl.dict.yaml ./gboard.zip
 
             - name: Publish
               env:
                 GH_TOKEN: ${{ github.token }}
               if: ${{ env.NEW_RELEASE == 'true' }}
               run: |
-                gh release create $latest publish/Gboard词库.zip -t $latest
+                gh release create $latest ./gboard.zip -t $latest
             
             - name: Update last_update
               if: ${{ env.NEW_RELEASE == 'true' }}

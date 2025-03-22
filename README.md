@@ -3,7 +3,7 @@
 
 ## 使用
 
-* 在release下载最新的`Gboard词库.zip`
+* 在release下载最新的`gboard.zip`
 * 打开Gboard设置-词典-个人词典-简体中文，点右上角导入，选择下载的zip文件，等待导入完成
 
 ## 来源
