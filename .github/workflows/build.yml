@@ -1,6 +1,11 @@
 name: Build
 
 on:
+    push:
+        paths-ignore:
+            - "last_update"
+            - "README.md"
+            - "LICENSE"
     schedule:
         - cron: "0 0 * * 1"
     workflow_dispatch:
@@ -14,13 +19,10 @@ jobs:
 
             - name: Check version
               run: |
-                # get latest release of https://github.com/outloudvi/mw2fcitx/
                 latest=$(curl -s $GITHUB_API_URL/repos/outloudvi/mw2fcitx/releases/latest | jq -r .tag_name)
                 echo "Latest release is $latest"
-                # get last update date from file last_update
                 last_update=$(cat last_update)
                 echo "Last update is $last_update"
-                # if no new release, update env variable to skip following steps
                 if [ "$latest" = "$last_update" ]; then
                     echo "No new release, skip following steps"
                     echo "NEW_RELEASE=false" >> $GITHUB_ENV
@@ -28,7 +30,7 @@ jobs:
                     echo "New release found, continue"
                     echo "NEW_RELEASE=true" >> $GITHUB_ENV
                     echo $latest > last_update
-                    echo $latest > $GITHUB_ENV
+                    echo "latest=$latest" >> $GITHUB_ENV
                 fi
 
             - name: Setup LibIME
