@@ -58,6 +58,8 @@ jobs:
                 ./publish/ImeWlConverterCmd -i:libimetxt ./moegirl.txt -o:gboard ./publish/
 
             - name: Publish
+              env:
+                GH_TOKEN: ${{ github.token }}
               if: ${{ env.NEW_RELEASE == 'true' }}
               run: |
                 gh release create $latest publish/Gboard词库.zip -t $latest
