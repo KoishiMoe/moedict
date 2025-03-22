@@ -28,6 +28,7 @@ jobs:
                     echo "New release found, continue"
                     echo "NEW_RELEASE=true" >> $GITHUB_ENV
                     echo $latest > last_update
+                    echo $latest > $GITHUB_ENV
                 fi
 
             - name: Setup LibIME
