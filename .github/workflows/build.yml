@@ -1,0 +1,70 @@
+name: Build
+
+on:
+    schedule:
+        - cron: "0 0 * * 1"
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Check version
+              run: |
+                # get latest release of https://github.com/outloudvi/mw2fcitx/
+                latest=$(curl -s $GITHUB_API_URL/repos/outloudvi/mw2fcitx/releases/latest | jq -r .tag_name)
+                echo "Latest release is $latest"
+                # get last update date from file last_update
+                last_update=$(cat last_update)
+                echo "Last update is $last_update"
+                # if no new release, update env variable to skip following steps
+                if [ "$latest" = "$last_update" ]; then
+                    echo "No new release, skip following steps"
+                    echo "NEW_RELEASE=false" >> $GITHUB_ENV
+                else
+                    echo "New release found, continue"
+                    echo "NEW_RELEASE=true" >> $GITHUB_ENV
+                    echo $latest > last_update
+                fi
+
+            - name: Setup LibIME
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                sudo apt update
+                sudo apt install -y libime-bin
+            
+            - name: Setup imewlconverter
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                wget https://github.com/studyzy/imewlconverter/releases/download/v3.2.0/imewlconverter_Linux.tar.gz
+                tar -xvf imewlconverter_Linux.tar.gz
+            
+            - name: Get dict
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                wget https://github.com/outloudvi/mw2fcitx/releases/latest/download/moegirl.dict
+
+            - name: Convert
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                libime_pinyindict -d moegirl.dict moegirl.txt
+                chmod +x publish/ImeWlConverterCmd
+                ./publish/ImeWlConverterCmd -i:libimetxt ./moegirl.txt -o:gboard ./publish/
+
+            - name: Publish
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                gh release create $latest publish/Gboard词库.zip -t $latest
+            
+            - name: Update last_update
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                git config --global user.name "github-actions[bot]"
+                git add last_update
+                git commit -m "$(date +'%Y-%m-%d') update"
+                git push
+            
