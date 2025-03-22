@@ -9,7 +9,7 @@ def convert(input_file, output_file):
     if (os.path.exists("dictionary.txt")):
         raise FileExistsError("dictionary.txt already exists.")
     with open(input_file, 'r') as f:
-        with open("dictionary.txt", 'w') as o:
+        with open("dictionary.txt", 'w', encoding='utf-8') as o:
             o.write("# Gboard Dictionary version:1\n\n")
             for line in f:
                 if len(ls := line.split("	")) == 2:
