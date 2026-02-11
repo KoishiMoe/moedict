@@ -16,7 +16,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
             - name: Check version
               run: |
@@ -39,17 +39,21 @@ jobs:
               run: |
                 wget https://github.com/outloudvi/mw2fcitx/releases/latest/download/moegirl.dict.yaml
 
-            - name: Convert
+            - name: Make zip release
               if: ${{ env.NEW_RELEASE == 'true' }}
               run: |
-                python ./convert.py ./moegirl.dict.yaml ./gboard.zip
+                python ./makezip.py ./moegirl.dict.yaml ./dist/gboard.zip
+            
+            - name: Make db release
+              if: ${{ env.NEW_RELEASE == 'true' }}
+              run: |
+                python ./makedb.py ./moegirl.dict.yaml ./dist/PersonalDictionary.db
 
-            - name: Publish
-              env:
-                GH_TOKEN: ${{ github.token }}
+            - name: Release
+              uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
               if: ${{ env.NEW_RELEASE == 'true' }}
-              run: |
-                gh release create $latest ./gboard.zip -t $latest
+              with:
+                files: dist/*
             
             - name: Update last_update
               if: ${{ env.NEW_RELEASE == 'true' }}
